@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temporizador Pomodoro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #f9fafb;
+    }
+    #notification {
+      display: none;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 text-gray-800">
+  <div class="bg-white shadow-lg rounded-lg p-8 border border-gray-300 w-full max-w-2xl">
+    <header class="text-center mb-8">
+      <h1 class="text-4xl font-bold mb-4">Temporizador Pomodoro</h1>
+      <p class="text-lg">
+        La técnica Pomodoro mejora la productividad dividiendo<br>
+        el tiempo en intervalos de trabajo de 25 minutos y descanso.
+      </p>
+    </header>
+    
+    <main>
+      <div class="text-center">
+        <h2 class="text-2xl font-semibold mb-4" id="timer">25:00</h2>
+        <div class="flex gap-4 justify-center mb-6">
+          <button id="start" class="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600">Iniciar</button>
+          <button id="pause" class="px-4 py-2 bg-yellow-500 text-white rounded shadow hover:bg-yellow-600">Pausar</button>
+          <button id="reset" class="px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600">Reiniciar</button>
+        </div>
+        <p class="text-gray-700">Pomodoros completados: <span id="pomodoroCount" class="font-bold">0</span></p>
+      </div>
+    </main>
+  </div>
+
+  <audio id="audio" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+  <div id="notification" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-xl font-bold">
+    ¡Tiempo terminado!
+  </div>
+
+  <script>
+    let timer;
+    let seconds = 1500; // 25 minutes
+    let isPaused = true;
+    let isWorkSession = true;
+    let pomodoroCount = 0;
+
+    const timerDisplay = document.getElementById("timer");
+    const startButton = document.getElementById("start");
+    const pauseButton = document.getElementById("pause");
+    const resetButton = document.getElementById("reset");
+    const pomodoroCounter = document.getElementById("pomodoroCount");
+    const notification = document.getElementById("notification");
+    const audio = document.getElementById("audio");
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      timerDisplay.textContent = `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+    }
+
+    function toggleNotification(show) {
+      notification.style.display = show ? "flex" : "none";
+    }
+
+    function startTimer() {
+      if (isPaused) {
+        isPaused = false;
+        timer = setInterval(() => {
+          if (seconds > 0) {
+            seconds--;
+            updateTimerDisplay();
+          } else {
+            audio.play();
+            toggleNotification(true);
+            clearInterval(timer);
+            setTimeout(() => toggleNotification(false), 3000);
+
+            if (isWorkSession) {
+              pomodoroCount++;
+              pomodoroCounter.textContent = pomodoroCount;
+              seconds = 300; // 5 minutes break
+            } else {
+              seconds = 1500; // 25 minutes work
+            }
+            isWorkSession = !isWorkSession;
+            updateTimerDisplay();
+            startTimer();
+          }
+        }, 1000);
+      }
+    }
+
+    function pauseTimer() {
+      isPaused = true;
+      clearInterval(timer);
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      isPaused = true;
+      seconds = 1500;
+      isWorkSession = true;
+      updateTimerDisplay();
+    }
+
+    startButton.addEventListener("click", startTimer);
+    pauseButton.addEventListener("click", pauseTimer);
+    resetButton.addEventListener("click", resetTimer);
+
+    updateTimerDisplay();
+  </script>
+</body>
+</html>
